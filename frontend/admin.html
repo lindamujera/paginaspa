@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Admin - Reservas Belleza y Estética</title>
+ <link href="img/favicon.jpg" rel="icon">
+ <style>
+ * {
+   margin: 0;
+   padding: 0;
+   box-sizing: border-box;
+ }
+
+ body {
+   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   min-height: 100vh;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   padding: 20px;
+ }
+
+ .container {
+   width: 100%;
+   max-width: 600px;
+   background: white;
+   border-radius: 12px;
+   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+   padding: 30px;
+ }
+
+ h1 {
+   color: #333;
+   margin-bottom: 20px;
+   text-align: center;
+   font-size: 28px;
+ }
+
+ .login-container {
+   border: 2px solid #e0e0e0;
+   padding: 30px;
+   border-radius: 12px;
+   background: #f9f9f9;
+ }
+
+ .login-container h2 {
+   text-align: center;
+   color: #667eea;
+   margin-bottom: 25px;
+   font-size: 24px;
+ }
+
+ .form-group {
+   margin-bottom: 20px;
+ }
+
+ .form-group label {
+   display: block;
+   margin-bottom: 8px;
+   font-weight: 600;
+   color: #555;
+   font-size: 14px;
+ }
+
+ .form-group input {
+   width: 100%;
+   padding: 12px;
+   border: 2px solid #e0e0e0;
+   border-radius: 6px;
+   box-sizing: border-box;
+   font-size: 14px;
+   transition: border-color 0.3s;
+ }
+
+ .form-group input:focus {
+   outline: none;
+   border-color: #667eea;
+   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+ }
+
+ .form-group button {
+   width: 100%;
+   padding: 12px;
+   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   color: white;
+   border: none;
+   border-radius: 6px;
+   cursor: pointer;
+   font-size: 16px;
+   font-weight: 600;
+   transition: transform 0.2s, box-shadow 0.2s;
+ }
+
+ .form-group button:hover {
+   transform: translateY(-2px);
+   box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+ }
+
+ .form-group button:active {
+   transform: translateY(0);
+ }
+
+ .error {
+   color: #721c24;
+   margin-bottom: 15px;
+   padding: 12px;
+   background: #f8d7da;
+   border-radius: 6px;
+   border-left: 4px solid #dc3545;
+   display: none;
+ }
+
+ .error.show {
+   display: block;
+   animation: slideIn 0.3s ease;
+ }
+
+ .reservas-container {
+   display: none;
+ }
+
+ .reservas-container.show {
+   display: block;
+ }
+
+ .logout-btn {
+   background: #dc3545;
+   padding: 10px 20px;
+   color: white;
+   border: none;
+   border-radius: 6px;
+   cursor: pointer;
+   margin-bottom: 20px;
+   width: auto;
+   float: right;
+   transition: background 0.3s;
+ }
+
+ .logout-btn:hover {
+   background: #c82333;
+ }
+
+ .reservas-list {
+   clear: both;
+ }
+
+ .reserva-card {
+   border: 2px solid #e0e0e0;
+   padding: 20px;
+   margin-bottom: 15px;
+   border-radius: 8px;
+   background: #f9f9f9;
+   transition: transform 0.2s, box-shadow 0.2s;
+ }
+
+ .reserva-card:hover {
+   transform: translateY(-2px);
+   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+ }
+
+ .reserva-card h3 {
+   color: #667eea;
+   margin-bottom: 12px;
+   font-size: 18px;
+   margin-top: 0;
+ }
+
+ .reserva-card p {
+   color: #666;
+   margin-bottom: 8px;
+   font-size: 14px;
+   line-height: 1.6;
+ }
+
+ .reserva-card strong {
+   color: #333;
+ }
+
+ @keyframes slideIn {
+   from {
+     opacity: 0;
+     transform: translateY(-10px);
+   }
+   to {
+     opacity: 1;
+     transform: translateY(0);
+   }
+ }
+
+ /* ===== RESPONSIVE - TABLET ===== */
+ @media (max-width: 768px) {
+   .container {
+     padding: 20px;
+   }
+
+   h1 {
+     font-size: 24px;
+   }
+
+   .login-container h2 {
+     font-size: 20px;
+   }
+
+   .form-group input {
+     padding: 10px;
+     font-size: 16px;
+   }
+
+   .form-group button {
+     padding: 10px;
+     font-size: 14px;
+   }
+
+   .logout-btn {
+     float: none;
+     width: 100%;
+   }
+
+   .reserva-card {
+     padding: 15px;
+   }
+
+   .reserva-card h3 {
+     font-size: 16px;
+   }
+
+   .reserva-card p {
+     font-size: 13px;
+   }
+ }
+
+ /* ===== RESPONSIVE - CELULAR ===== */
+ @media (max-width: 480px) {
+   body {
+     padding: 10px;
+   }
+
+   .container {
+     padding: 15px;
+     border-radius: 8px;
+   }
+
+   h1 {
+     font-size: 20px;
+     margin-bottom: 15px;
+   }
+
+   .login-container h2 {
+     font-size: 18px;
+     margin-bottom: 15px;
+   }
+
+   .form-group {
+     margin-bottom: 15px;
+   }
+
+   .form-group label {
+     font-size: 13px;
+     margin-bottom: 6px;
+   }
+
+   .form-group input {
+     padding: 10px;
+     font-size: 16px;
+     border-radius: 4px;
+   }
+
+   .form-group button {
+     padding: 12px;
+     font-size: 14px;
+     border-radius: 4px;
+   }
+
+   .logout-btn {
+     padding: 10px;
+     font-size: 13px;
+   }
+
+   .reserva-card {
+     padding: 12px;
+     margin-bottom: 12px;
+   }
+
+   .reserva-card h3 {
+     font-size: 15px;
+     margin-bottom: 10px;
+   }
+
+   .reserva-card p {
+     font-size: 12px;
+     margin-bottom: 6px;
+   }
+
+   .error {
+     padding: 12px;
+     font-size: 13px;
+   }
+ }
+.delete-btn {
+ background-color: #f44336;
+ color: white;
+ border: none;
+ padding: 8px 16px;
+ border-radius: 4px;
+ cursor: pointer;
+ margin-top: 10px;
+ font-weight: bold;
+}
+
+.delete-btn:hover {
+ background-color: #da190b;
+}
+  
+ </style>
+ <script>
+ window.BACKEND_URL = 'https://paginaspa-backend-production.up.railway.app';
+ </script>
+</head>
+<body>
+
+<div class="container">
+ <div id="loginForm" class="login-container">
+   <h2>Admin - Acceso Restringido</h2>
+   <div id="errorMsg" class="error"></div>
+   <form onsubmit="handleLogin(event)">
+     <div class="form-group">
+       <label for="usuario">Usuario:</label>
+       <input type="text" id="usuario" name="usuario" required>
+     </div>
+     <div class="form-group">
+       <label for="password">Contraseña:</label>
+       <input type="password" id="password" name="password" required>
+     </div>
+     <div class="form-group">
+       <button type="submit">Entrar</button>
+     </div>
+   </form>
+ </div>
+
+ <div id="reservasContainer" class="reservas-container">
+   <button class="logout-btn" onclick="handleLogout()">Cerrar Sesión</button>
+   <h1>Reservas</h1>
+   <div id="reservas" class="reservas-list"></div>
+ </div>
+</div>
+
+<script>
+function handleLogin(event) {
+ event.preventDefault();
+ 
+ const usuario = document.getElementById('usuario').value;
+ const password = document.getElementById('password').value;
+ 
+ fetch(`${window.BACKEND_URL}/api/login`, {
+   method: 'POST',
+   headers: {
+     'Content-Type': 'application/json'
+   },
+   body: JSON.stringify({ usuario, password })
+ })
+ .then(res => res.json())
+ .then(data => {
+   if (data.success) {
+     localStorage.setItem('adminToken', data.token);
+     document.getElementById('loginForm').style.display = 'none';
+     document.getElementById('reservasContainer').classList.add('show');
+     cargarReservas();
+   } else {
+     const errorMsg = document.getElementById('errorMsg');
+     errorMsg.textContent = data.mensaje || 'Usuario o contraseña incorrectos';
+     errorMsg.classList.add('show');
+   }
+ })
+ .catch(error => {
+   console.error('Error:', error);
+   const errorMsg = document.getElementById('errorMsg');
+   errorMsg.textContent = 'Error al conectar con el servidor';
+   errorMsg.classList.add('show');
+ });
+}
+
+function cargarReservas() {
+ const token = localStorage.getItem('adminToken');
+ 
+ fetch(`${window.BACKEND_URL}/api/reservas`, {
+   headers: {
+     'Authorization': `Bearer ${token}`
+   }
+ })
+ .then(res => res.json())
+ .then(data => {
+   let html = '';
+   if (data.length === 0) {
+     html = '<p style="text-align: center; color: #999;">No hay reservas aún</p>';
+   } else {
+    data.forEach(r => {
+ html += `
+ <div class="reserva-card">
+ <h3>${r.nombre}</h3>
+ <p><strong>Email:</strong> ${r.email}</p>
+ <p><strong>Fecha:</strong> ${new Date(r.fecha).toLocaleDateString('es-ES')}</p>
+ <p><strong>Hora:</strong> ${r.hora}</p>
+ <p><strong>Servicio:</strong> ${r.servicio}</p>
+ <button class="delete-btn" onclick="eliminarReserva(${r.id})">Eliminar</button>
+ </div>
+ `;
+  });
+  }
+   document.getElementById('reservas').innerHTML = html;
+ })
+ .catch(error => {
+   console.error('Error:', error);
+   document.getElementById('reservas').innerHTML = '<p style="color: red;">Error al cargar reservas</p>';
+ });
+}
+
+function handleLogout() {
+ localStorage.removeItem('adminToken');
+ document.getElementById('loginForm').style.display = 'block';
+ document.getElementById('reservasContainer').classList.remove('show');
+ document.getElementById('usuario').value = '';
+ document.getElementById('password').value = '';
+ document.getElementById('errorMsg').textContent = '';
+ document.getElementById('errorMsg').classList.remove('show');
+}
+
+ function eliminarReserva(id) {
+ if (!confirm('¿Estás seguro de que deseas eliminar esta reserva?')) {
+ return;
+ }
+ 
+ const token = localStorage.getItem('adminToken');
+ 
+ fetch(`${window.BACKEND_URL}/api/reservas/${id}`, {
+ method: 'DELETE',
+ headers: {
+ 'Authorization': `Bearer ${token}`  // CON "Bearer "
+ }
+ })
+ .then(res => res.json())
+ .then(data => {
+ if (data.success) {
+ alert('Reserva eliminada');
+ cargarReservas();
+ } else {
+ alert(data.mensaje || 'Error al eliminar');
+ }
+ })
+ .catch(error => {
+ console.error('Error:', error);
+ alert('Error al eliminar reserva');
+ });
+}
+window.addEventListener('load', () => {
+ const token = localStorage.getItem('adminToken');
+ if (token) {
+   document.getElementById('loginForm').style.display = 'none';
+   document.getElementById('reservasContainer').classList.add('show');
+   cargarReservas();
+ }
+});
+</script>
+
+</body>
+</html>

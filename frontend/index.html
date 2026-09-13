@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  
+  <meta charset="UTF-8">
+
+  <title>Centro de Belleza y Estética</title>
+
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <link href="img/favicon.jpg" rel="icon">
+
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+ <link rel="stylesheet" href="style.css">
+  
+<script>
+  window.BACKEND_URL = 'https://paginaspa-backend-production.up.railway.app';
+</script>
+  
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <img src="img/logo.png" alt="Logo del Centro de Spa y Belleza">
+  </div>
+  <h1>Centro de Belleza y Estética</h1>
+  <nav>
+    <a href="#servicios">Servicios</a>
+    <a href="#especialistas">Especialistas</a>
+    <a href="#testimonios">Testimonios</a>
+    <a href="#contacto">Contacto</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <h2>Relajación, belleza y bienestar en un solo lugar</h2>
+  <p>Tratamiento de Masajes</p>
+</section>
+
+<!-- SERVICIOS -->
+<section id="servicios" class="servicios">
+  <h2>Servicios de Belleza y Estética</h2>
+  <p class="subtitulo">Cuidamos tu cuerpo, mente y piel</p>
+
+  <div class="servicios-grid">
+
+    <div class="servicio-card">
+      <img src="img/masaje.jpg" alt="Masaje corporal">
+      <div class="servicio-info">
+        <h3>Masajes relajantes</h3>
+        <p>Relajación profunda para aliviar tensiones y estrés.</p>
+      </div>
+    </div>
+
+    <div class="servicio-card">
+      <img src="img/reductores.jpg" alt="Masajes reductores">
+      <div class="servicio-info">
+        <h3>Masajes reductores</h3>
+        <p>Especialistas en crear sonrisas, Convirtiendo cada día en algo único.</p>
+      </div>
+    </div>
+
+    <div class="servicio-card">
+      <img src="img/postoperatorios.jpg" alt="Masajes postoperatorios">
+      <div class="servicio-info">
+        <h3>Masajes postoperatorios</h3>
+        <p> técnicas incluyen la manipulación suave de los tejidos, que ayuda a reducir la inflamación y mejora la circulación</p>
+      </div>
+    </div>
+
+    <div class="servicio-card">
+      <img src="img/limpiezafacial.jpg" alt="Limpieza facial">
+      <div class="servicio-info">
+        <h3>Limpieza facial</h3>
+        <p>Tratamiento revitalizante para una piel radiante.</p>
+      </div>
+    </div>
+
+
+    <div class="servicio-card">
+      <img src="img/facial.jpg" alt="Tratamientos faciales">
+      <div class="servicio-info">
+        <h3>Tratamientos faciales</h3>
+        <p>Cuidado especializado según tu tipo de piel.</p>
+      </div>
+    </div>
+
+    <div class="servicio-card">
+      <img src="img/dermapen.jpg" alt="Dermapen y plasma">
+      <div class="servicio-info">
+        <h3>Dermapen y plasma</h3>
+        <p>para estimular la producción de colágeno y mejorar la textura y firmeza, piel más suave y rejuvenecida</p>
+      </div>
+    </div>
+
+    <div class="servicio-card">
+      <img src="img/Sueroterapia.jpg" alt="Sueroterapia">
+      <div class="servicio-info">
+        <h3>Sueroterapia</h3>
+        <p>Transformando la piel, un tratamiento a la vez. No es vanidad, es cuidado personal</p>
+      </div>
+    </div>
+
+    <div class="servicio-card">
+      <img src="img/capilares.jpg" alt="Tratamientos capilares intradérmico">
+      <div class="servicio-info">
+        <h3>Tratamientos capilares intradérmico</h3>
+        <p>Detiene la caída y favorece el crecimiento,Mejorar calidad y cantidad de cabello</p>
+      </div>
+    </div>
+
+    <div class="servicio-card">
+      <img src="img/depilacion.jpg" alt="Depilación">
+      <div class="servicio-info">
+        <h3>depilacion con cera</h3>
+        <p>Tratamiento profesional para una piel suave y libre de pelos.</p>
+      </div>
+    </div>
+
+    <div class="servicio-card">
+      <img src="img/uñas.jpg" alt="Todo tipo de uñas">
+      <div class="servicio-info">
+        <h3>Todo tipo de uñas</h3>
+        <p>Manos perfectas, uñas impecables. El detalle que marca la diferencia.</p>
+      </div>
+    </div>
+
+    <div class="servicio-card">
+      <img src="img/gel.jpg" alt="Uñas en Gel">
+      <div class="servicio-info">
+        <h3>uñas en Gel, Acrílico,Poligel</h3>
+        <p>sistemas Artificiales, Manos perfectas, uñas impecables. El detalle que marca la diferencia.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- RESERVA -->
+<section id="reserva" class="reserva">
+  <h2>Hacer tu cita</h2>
+
+   <div class="reserva-form">
+  <input type="text" id="nombre" placeholder="Tu nombre">
+  <input type="email" id="email" placeholder="Tu correo electrónico">
+  <input type="date" id="fecha">
+  <input type="time" id="hora">
+    <select id="servicio">
+ <option value="servicios">Selecciona un servicio</option>
+ <option>Masajes relajantes</option>
+ <option>Masajes reductores</option>
+ <option>Masajes postoperatorios</option>
+ <option>Limpieza facial</option>
+ <option>Tratamientos faciales</option>
+ <option>Dermapen y plasma</option>
+ <option>Sueroterapia</option>
+ <option>Tratamientos capilares intradérmico</option>
+ <option>Depilación con cera</option>
+ <option>Uñas Tradicionales</option>
+ <option>Uñas Semi</option>
+ <option>Uñas Artificiales Acrílico,Poligel,en gel</option>
+</select>
+  <button type="button" onclick="reservar()">Hacer cita</button>
+ </div>
+</section>
+
+<!-- CLIENTES FELICES -->
+<section class="clientes-felices">
+  <h2>Clientes Felices</h2>
+  <p class="subtitulo">Nuestra mayor satisfacción es tu bienestar</p>
+
+  <div class="contador">
+    <span id="contadorNumero">0%</span>
+    <p>Clientes satisfechos</p>
+  </div>
+</section>
+<!-- HORARIOS -->
+<section id="horarios" class="horarios">
+  <h2>Horarios de Atención</h2>
+  <p class="subtitulo">Estamos disponibles para brindarte el mejor cuidado</p>
+
+  <div class="horarios-card">
+    <div class="horario-item">
+      <span>Lunes a Viernes</span>
+      <strong>9:00 a.m. – 5:00 p.m.</strong>
+    </div>
+
+    <div class="horario-item">
+      <span>Sábados</span>
+      <strong>9:00 a.m. – 5:00 p.m.</strong>
+    </div>
+
+    <div class="horario-item cerrado">
+      <span>Domingos</span>
+      <strong>Cerrado</strong>
+    </div>
+  </div>
+</section>
+
+<!-- ESPECIALISTAS -->
+<section id="especialistas" class="especialistas">
+  <h2>Especialistas en Estética</h2>
+  <p>Profesionales dedicados a tu bienestar</p>
+
+    <div class="especialista-card">
+      <img src="img/especialista2.jpg">
+      <h3>Nicole Bedoya Mejía</h3>
+      <span>Profesionales del Estilo, Belleza y Experiencia</span>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIOS -->
+<section id="testimonios" class="testimonios">
+  <h2>¡Lo que dicen nuestros clientes!</h2>
+
+  <div class="testimonios-grid">
+    <div class="testimonio-card">
+      “Excelente atención y un ambiente muy relajante.”
+      <strong>- Carolina M.</strong>
+    </div>
+
+    <div class="testimonio-card">
+      “Resultados increíbles, volveré sin duda.”
+      <strong>- Daniela R.</strong>
+    </div>
+
+    <div class="testimonio-card">
+      “El mejor en Belleza y Estética que he visitado.”
+      <strong>- Paula S.</strong>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACTO -->
+<section id="contacto" class="contacto">
+  <h2>Contáctanos</h2>
+
+  <p><strong>Correo:</strong> nbedoya947@gmail.com</p>
+
+  <p><strong>Instagram:</strong>
+    <a href="https://instagram.com/krasa.bellezayestetica" target="_blank">
+      @krasa.bellezayestetica
+    </a>
+  </p>
+
+  <p><strong>Llamadas:</strong> 311 774 0244</p>
+
+  <p><strong>WhatsApp:</strong>
+    <a href="https://wa.me/573157382218" target="_blank">
+      +57315 738 2218
+    </a>
+  </p>
+</section>
+
+<footer>
+  © 2026 Centro Krása de Belleza y Estética
+</footer>
+<!-- CHATBOT -->
+<div class="chatbot">
+
+  <div class="chat-header" onclick="abrirChat()">
+    💬 Asistente Kràsa -Belleza y Estética.
+  </div>
+
+  <div class="chat-body" id="chatBody">
+
+    <div class="mensaje bot">
+      Hola 👋 Bienvenida al Centro de Belleza y Estética.
+      ¿En qué podemos ayudarte?
+    </div>
+
+  </div>
+
+  <div class="chat-input">
+
+    <input
+      type="text"
+      id="mensajeUsuario"
+      placeholder="Escribe aquí..."
+    >
+
+    <button onclick="enviarMensaje()">
+      Enviar
+    </button>
+
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
