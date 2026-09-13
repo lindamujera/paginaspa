@@ -5,7 +5,12 @@ const mysql = require('mysql2/promise');
 const routes = require('./routes');
 
 const app = express();
-app.use(cors());
+// Reemplaza app.use(cors()); por esto:
+app.use(cors({
+  origin: '*', // Permite que tu página de Netlify se conecte sin bloqueos
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 /* ===== CONFIGURACIÓN DEL POOL MYSQL (Conectado usando tu DATABASE_URL de Render) ===== */
