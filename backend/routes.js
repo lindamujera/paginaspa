@@ -62,36 +62,38 @@ const especialistaServicio = {
 };
 
 // =====================================
-// VALIDAR DISPONIBILIDAD (Versión Corregida)
+// VALIDAR DISPONIBILIDAD (SÚPER SEGURA PARA MYSQL)
 // =====================================
 function validarDisponibilidad(connectionPool, fecha, horaInicio, duracion, especialista, callback) {
- // Calculamos la hora de fin sumando los minutos en JavaScript para no saturar a MySQL
- const [horas, minutos] = horaInicio.split(':');
- const fechaBase = new Date(2000, 0, 1, parseInt(horas), parseInt(minutos));
- fechaBase.setMinutes(fechaBase.getMinutes() + duracion);
- 
- const horaFinStr = fechaBase.toTimeString().slice(0, 5); // Ejemplo: "15:15"
- const horaInicioStr = horaInicio.slice(0, 5);            // Ejemplo: "14:30"
+  // 1. Calculamos la hora de fin usando Javascript de forma limpia
+  const [horas, minutos] = horaInicio.split(':');
+  const fechaBase = new Date(2000, 0, 1, parseInt(horas), parseInt(minutos));
+  fechaBase.setMinutes(fechaBase.getMinutes() + duracion);
+  
+  // 2. Nos aseguramos de tener el formato "HH:MM:SS" que le encanta a MySQL
+  const horaInicioStr = horaInicio.includes(':') && horaInicio.split(':').length === 2 ? `${horaInicio}:00` : horaInicio;
+  const horaFinStr = `${fechaBase.toTimeString().slice(0, 5)}:00`;
 
- // Una consulta SQL limpia y directa usando lógica de marcas de tiempo estándar
- const sql = `
- SELECT * FROM reservas 
- WHERE fecha = ? 
- AND especialista = ?
- AND (
-   (hora < ? AND SEC_TO_TIME(TIME_TO_SEC(hora) + (duracion_minutos * 60)) > TIME(?))
-   OR (hora >= ? AND hora < ?)
- )
- `;
- 
- connectionPool.query(sql, [fecha, especialista, horaFinStr, horaInicioStr, horaInicioStr, horaFinStr], (err, result) => {
-   if (err) {
-     console.error("Error detallado en MySQL:", err);
-     callback(false, 'Error al validar disponibilidad');
-     return;
-   }
-   callback(result.length === 0, null);
- });
+  // 3. Consulta SQL directa usando la función TIME() nativa de MySQL
+  const sql = `
+    SELECT * FROM reservas 
+    WHERE fecha = ? 
+    AND especialista = ?
+    AND (
+      (TIME(hora) < TIME(?) AND TIME(ADDTIME(hora, SEC_TO_TIME(duracion_minutos * 60))) > TIME(?))
+      OR (TIME(hora) >= TIME(?) AND TIME(hora) < TIME(?))
+    )
+  `;
+  
+  connectionPool.query(sql, [fecha, especialista, horaFinStr, horaInicioStr, horaInicioStr, horaFinStr], (err, result) => {
+    if (err) {
+      console.error("Error detallado en MySQL:", err);
+      callback(false, 'Error al validar disponibilidad');
+      return;
+    }
+    // Retorna verdadero si la lista de ocupados está vacía
+    callback(result.length === 0, null);
+  });
 }
 // =====================================
 // GUARDAR RESERVA (Adaptado a MySQL)
