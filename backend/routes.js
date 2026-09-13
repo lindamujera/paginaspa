@@ -159,7 +159,7 @@ router.post('/reservar', (req, res) => {
 });
 
 // =====================================
-// OBTENER HORARIOS DISPONIBLES
+// OBTENER HORARIOS DISPONIBLES (CORREGIDO PARA MYSQL)
 // =====================================
 router.post('/horarios-disponibles', (req, res) => {
  try {
@@ -215,12 +215,14 @@ router.post('/horarios-disponibles', (req, res) => {
  // Filtrar horarios ocupados
  const horariosOcupados = new Set();
  reservas.forEach(r => {
- const [h, m] = r.hora.split(':').map(Number);
+ // CORRECCIÓN: Convertir r.hora a String para evitar fallos en MySQL
+ const horaTexto = String(r.hora);
+ const [h, m] = horaTexto.split(':').map(Number);
  const minutoInicio = h * 60 + m;
- const minutoFin = minutoInicio + r.duracion_minutos;
+ const minutoFin = minutoInicio + parseInt(r.duracion_minutos);
  for (let min = minutoInicio; min < minutoFin; min += 30) {
- const hora = `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
- horariosOcupados.add(hora);
+ const horaFormateada = `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+ horariosOcupados.add(horaFormateada);
  }
  });
  
@@ -258,12 +260,14 @@ router.post('/horarios-disponibles', (req, res) => {
  // Filtrar horarios ocupados
  const horariosOcupados = new Set();
  reservas.forEach(r => {
- const [h, m] = r.hora.split(':').map(Number);
+ // CORRECCIÓN: Convertir r.hora a String para evitar fallos en MySQL
+ const horaTexto = String(r.hora);
+ const [h, m] = horaTexto.split(':').map(Number);
  const minutoInicio = h * 60 + m;
- const minutoFin = minutoInicio + r.duracion_minutos;
+ const minutoFin = minutoInicio + parseInt(r.duracion_minutos);
  for (let min = minutoInicio; min < minutoFin; min += 30) {
- const hora = `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
- horariosOcupados.add(hora);
+ const horaFormateada = `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+ horariosOcupados.add(horaFormateada);
  }
  });
  
@@ -306,7 +310,7 @@ router.get('/reservas', (req, res) => {
  mensaje: 'Error al obtener reservas'
  });
  }
- res.status(200).json(result);
+ res.status(200).json({ success: true, reservas: result }); // CORREGIDO: Retorna formato compatible con frontend
  });
 });
 
@@ -323,7 +327,6 @@ router.delete('/reservas/:id', (req, res) => {
  });
  }
  
- // Verifica que el token sea válido (comienza con 'admin-token-')
  if (!token.startsWith('admin-token-')) {
  return res.status(401).json({
  success: false,
@@ -365,7 +368,7 @@ router.delete('/reservas/:id', (req, res) => {
 });
 
 // =====================================
-// VALIDAR LÍMITE UÑAS ARTIFICIALES (máx 4 citas por día)
+// VALIDAR LÍMITE UÑAS ARTIFICIALES
 // =====================================
 function validarLimiteUnasArtificiales(connection, fecha, callback) {
  const sql = `
