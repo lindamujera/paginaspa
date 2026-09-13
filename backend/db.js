@@ -1,15 +1,15 @@
-const mysql = require('mysql2');
+const mysql = require("mysql2");
 
-// Mantenemos DATABASE_URL porque la dejamos así en Render
+// Conectamos directamente usando la URL unificada de Clever Cloud que tienes en Render
 const connection = mysql.createPool(process.env.DATABASE_URL);
 
-// Verificar la conexión
+// Verificar la conexión inicial de forma segura
 connection.getConnection((err, conn) => {
   if (err) {
     console.log('Error conexión MySQL en Clever Cloud:', err);
   } else {
     console.log('Conectado exitosamente a la base de datos de Clever Cloud');
-    conn.release();
+    conn.release(); // Liberamos la conexión de prueba
   }
 });
 
