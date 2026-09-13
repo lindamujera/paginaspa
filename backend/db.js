@@ -1,7 +1,7 @@
 const mysql = require('mysql2');
 
-// Cambiamos process.env.DATABASE_URL por process.env.MYSQL_ADDON_URI
-const connection = mysql.createPool(process.env.MYSQL_ADDON_URI);
+// Mantenemos DATABASE_URL porque la dejamos así en Render
+const connection = mysql.createPool(process.env.DATABASE_URL);
 
 // Verificar la conexión
 connection.getConnection((err, conn) => {
@@ -14,4 +14,3 @@ connection.getConnection((err, conn) => {
 });
 
 module.exports = connection;
-
