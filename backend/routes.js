@@ -62,28 +62,44 @@ const especialistaServicio = {
 };
 
 // =====================================
-// VALIDAR DISPONIBILIDAD
+// VALIDAR DISPONIBILIDAD (PROCESADO EN JAVASCRIPT)
 // =====================================
-function validarDisponibilidad(connection, fecha, horaInicio, duracion, especialista, callback) {
- const horaFin = new Date(`2000-01-01 ${horaInicio}`);
- horaFin.setMinutes(horaFin.getMinutes() + duracion);
- const horaFinStr = horaFin.toTimeString().slice(0, 5);
- const sql = `
- SELECT * FROM reservas 
- WHERE fecha = ? 
- AND especialista = ?
- AND (
- (hora < ? AND ADDTIME(hora, SEC_TO_TIME(duracion_minutos * 60)) > ?)
- OR (hora >= ? AND hora < ?)
- )
- `;
- connection.query(sql, [fecha, especialista, horaFinStr, horaInicio, horaInicio, horaFinStr], (err, result) => {
- if (err) {
- callback(false, 'Error al validar disponibilidad');
- return;
- }
- callback(result.length === 0, null);
- });
+function validarDisponibilidad(connectionPool, fecha, horaInicio, duracion, especialista, callback) {
+  // 1. Convertimos la hora de la nueva reserva a minutos totales del día
+  const [hInicio, mInicio] = horaInicio.split(':').map(Number);
+  const inicioNueva = hInicio * 60 + mInicio;
+  const finNueva = inicioNueva + duracion;
+
+  // 2. Traemos las reservas de ese especialista en esa fecha específica
+  const sql = `SELECT hora, duracion_minutos FROM reservas WHERE fecha = ? AND especialista = ?`;
+  
+  connectionPool.query(sql, [fecha, especialista], (err, result) => {
+    if (err) {
+      console.error("Error al consultar reservas en MySQL:", err);
+      callback(false, 'Error al validar disponibilidad');
+      return;
+    }
+
+    // 3. Revisamos si hay algún choque de horarios usando JavaScript
+    for (let i = 0; i < result.length; i++) {
+      const reservaExistente = result[i];
+      
+      // Convertimos la hora de la reserva existente a texto y luego a minutos
+      const horaTexto = String(reservaExistente.hora);
+      const [hExistente, mExistente] = horaTexto.split(':').map(Number);
+      const inicioExistente = hExistente * 60 + mExistente;
+      const finExistente = inicioExistente + parseInt(reservaExistente.duracion_minutos);
+
+      // Regla de colisión: Si los rangos se cruzan, no hay disponibilidad
+      if ((inicioNueva < finExistente && finNueva > inicioExistente)) {
+        callback(false, null); 
+        return;
+      }
+    }
+
+    // Si no hay choques, la hora está libre
+    callback(true, null);
+  });
 }
 
 // =====================================
