@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');  // ← CAMBIADO PARA RENDER POSTGRES
+const mysql = require('mysql2');
 const routes = require('./routes');
 
 const app = express();
@@ -9,18 +9,11 @@ app.use(cors());
 app.use(express.json());
 app.use(routes);
 
-/* ===== CONFIGURACIÓN DEL POOL POSTGRESQL ===== */
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false } // Requerido por Render para conexiones seguras
-});
+/* ===== CONFIGURACIÓN DEL POOL MYSQL ===== */
+const pool = mysql.createPool(process.env.DATABASE_URL);
 
-// Manejo de errores del pool para mantener la estabilidad de tu app
-pool.on('error', (err) => {
-  console.error('Error inesperado en el cliente del Pool de Render:', err);
-});
-
-console.log('Conectado a la base de datos de Render');
+// En MySQL los errores se manejan por consulta, pero dejamos el log de confirmación
+console.log('Conectado a la base de datos de Clever Cloud');
 
 /* ===== RUTA GET ===== */
 app.get("/", (req, res) => {
@@ -39,8 +32,8 @@ app.post("/api/reservas", async (req, res) => {
   }
   
   try {
-    // En PostgreSQL con 'pg' usamos directamente pool.query sin necesidad de abrir y cerrar conexiones manualmente
-    const sql = 'INSERT INTO reservas (nombre, email, fecha, hora, servicio) VALUES ($1, $2, $3, $4, $5)';
+    // CORREGIDO: Sintaxis de MySQL usando signos de interrogación (?) en lugar de $1, $2...
+    const sql = 'INSERT INTO reservas (nombre, email, fecha, hora, servicio) VALUES (?, ?, ?, ?, ?)';
     await pool.query(sql, [nombre, email, fecha, hora, servicio]);
     
     console.log('Reserva guardada:', { nombre, email, fecha, hora, servicio });
