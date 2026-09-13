@@ -391,11 +391,15 @@ function cargarReservas() {
  })
  .then(res => res.json())
  .then(data => {
+   // CORRECCIÓN AQUÍ: Asegura que 'lista' siempre sea un arreglo válido de reservas
+   const lista = Array.isArray(data) ? data : (data.reservas || []);
+   
    let html = '';
-   if (data.length === 0) {
+   if (lista.length === 0) {
      html = '<p style="text-align: center; color: #999;">No hay reservas aún</p>';
    } else {
-    data.forEach(r => {
+    // CORRECCIÓN AQUÍ: Usamos 'lista' para que .forEach nunca vuelva a fallar
+    lista.forEach(r => {
  html += `
  <div class="reserva-card">
  <h3>${r.nombre}</h3>
