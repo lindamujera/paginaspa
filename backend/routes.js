@@ -12,7 +12,7 @@ const ejecutarQuery = (sql, valores, callback) => {
    callback(null, res);
  });
 };
-// =====================================
+// =====================================  
 // LOGIN ADMIN
 // =====================================
 router.post('/login', (req, res) => {
