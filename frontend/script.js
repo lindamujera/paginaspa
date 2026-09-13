@@ -101,7 +101,7 @@ function seleccionarHora(hora) {
 }
 
 // =====================================
-// RESERVAR
+// RESERVAR (CÓDIGO CORREGIDO Y LIMPIO)
 // =====================================
 function reservar() {
  const nombre = document.getElementById('nombre').value;
@@ -115,78 +115,78 @@ function reservar() {
  return;
  }
 
- // Validar disponibilidad ANTES de guardar
+ // VALIDACIÓN CORREGIDA: Se restauró fetch, method y headers correctamente
  fetch(`${window.BACKEND_URL}/api/horarios-disponibles`, {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ fecha, servicio })
+   method: 'POST',
+   headers: { 'Content-Type': 'application/json' },
+   body: JSON.stringify({ fecha, servicio })
  })
  .then(res => res.json())
  .then(data => {
- if (!data.success) {
- alert(data.mensaje);
- return;
- }
+   if (!data.success) {
+     alert(data.mensaje);
+     return;
+   }
 
- // Verificar si la hora seleccionada está disponible
- if (!data.horariosLibres.includes(hora)) {
- // Mostrar horarios disponibles
- let horariosDiv = document.getElementById('horarios-disponibles');
- if (!horariosDiv) {
- horariosDiv = document.createElement('div');
- horariosDiv.id = 'horarios-disponibles';
- horariosDiv.style.marginTop = '10px';
- horariosDiv.style.padding = '10px';
- horariosDiv.style.backgroundColor = '#fff3cd';
- horariosDiv.style.borderRadius = '5px';
- horariosDiv.style.border = '2px solid #ffc107';
- document.getElementById('hora').parentElement.appendChild(horariosDiv);
- }
+   // Verificar si la hora seleccionada está disponible
+   if (!data.horariosLibres.includes(hora)) {
+     // Mostrar horarios disponibles
+     let horariosDiv = document.getElementById('horarios-disponibles');
+     if (!horariosDiv) {
+       horariosDiv = document.createElement('div');
+       horariosDiv.id = 'horarios-disponibles';
+       horariosDiv.style.marginTop = '10px';
+       horariosDiv.style.padding = '10px';
+       horariosDiv.style.backgroundColor = '#fff3cd';
+       horariosDiv.style.borderRadius = '5px';
+       horariosDiv.style.border = '2px solid #ffc107';
+       document.getElementById('hora').parentElement.appendChild(horariosDiv);
+     }
 
- horariosDiv.innerHTML = `
- <p style="margin: 0 0 10px 0; font-weight: bold; color: #856404;">⚠️ Esta hora no está disponible. Selecciona otra:</p>
- <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
- ${data.horariosLibres.map(h => `
- <button type="button" style="padding: 8px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;" onclick="seleccionarHora('${h}')">
- ${h}
- </button>
- `).join('')}
- </div>
- `;
- return;
- }
+     horariosDiv.innerHTML = `
+       <p style="margin: 0 0 10px 0; font-weight: bold; color: #856404;">⚠️ Esta hora no está disponible. Selecciona otra:</p>
+       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+         ${data.horariosLibres.map(h => `
+           <button type="button" style="padding: 8px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;" onclick="seleccionarHora('${h}')">
+             ${h}
+           </button>
+         `).join('')}
+       </div>
+     `;
+     return;
+   }
 
- // Si la hora está disponible, guardar reserva
- const data_reserva = { nombre, email, fecha, hora, servicio };
+   // Si la hora está disponible, guardar reserva
+   const data_reserva = { nombre, email, fecha, hora, servicio };
 
- fetch(`${window.BACKEND_URL}/api/reservar`, {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify(data_reserva)
- })
- .then(res => res.json())
- .then(result => {
- if (result.success) {
- alert('¡Reserva confirmada!');
- document.getElementById('nombre').value = '';
- document.getElementById('email').value = '';
- document.getElementById('fecha').value = '';
- document.getElementById('hora').value = '';
- document.getElementById('servicio').value = 'servicios';
- const horariosDiv = document.getElementById('horarios-disponibles');
- if (horariosDiv) horariosDiv.remove();
- } else {
- alert(result.mensaje);
- }
+   fetch(`${window.BACKEND_URL}/api/reservar`, {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify(data_reserva)
+   })
+   .then(res => res.json())
+   .then(result => {
+     if (result.success) {
+       alert('¡Reserva confirmada!');
+       document.getElementById('nombre').value = '';
+       document.getElementById('email').value = '';
+       document.getElementById('fecha').value = '';
+       document.getElementById('hora').value = '';
+       document.getElementById('servicio').value = 'servicios';
+       const horariosDiv = document.getElementById('horarios-disponibles');
+       if (horariosDiv) horariosDiv.remove();
+     } else {
+       alert(result.mensaje);
+     }
+   })
+   .catch(error => {
+     console.error(error);
+     alert('Error al reservar');
+   });
  })
  .catch(error => {
- console.error(error);
- alert('Error al reservar');
- });
- })
- .catch(error => {
- console.error('Error:', error);
- alert('Error al validar disponibilidad');
+   console.error('Error:', error);
+   alert('Error al validar disponibilidad');
  });
 }
 // =============================
