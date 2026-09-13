@@ -1,16 +1,15 @@
-const { Pool } = require('pg');
+const mysql = require('mysql2');
 
-const connection = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false } // Requerido por Render para conexiones seguras
-});
+// Crear la conexión usando la URL de Clever Cloud
+const connection = mysql.createPool(process.env.DATABASE_URL);
 
-// Verificar la conexión con Render
-connection.connect(err => {
+// Verificar la conexión
+connection.getConnection((err, conn) => {
   if (err) {
-    console.log('Error conexión PostgreSQL en Render:', err);
+    console.log('Error conexión MySQL en Clever Cloud:', err);
   } else {
-    console.log('Conectado exitosamente a la base de datos de Render');
+    console.log('Conectado exitosamente a la base de datos de Clever Cloud');
+    conn.release(); // Libera la conexión de prueba
   }
 });
 
