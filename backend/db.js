@@ -1,7 +1,7 @@
 const mysql = require('mysql2');
 
-// Crear la conexión usando la URL de Clever Cloud
-const connection = mysql.createPool(process.env.DATABASE_URL);
+// Cambiamos process.env.DATABASE_URL por process.env.MYSQL_ADDON_URI
+const connection = mysql.createPool(process.env.MYSQL_ADDON_URI);
 
 // Verificar la conexión
 connection.getConnection((err, conn) => {
@@ -9,7 +9,7 @@ connection.getConnection((err, conn) => {
     console.log('Error conexión MySQL en Clever Cloud:', err);
   } else {
     console.log('Conectado exitosamente a la base de datos de Clever Cloud');
-    conn.release(); // Libera la conexión de prueba
+    conn.release();
   }
 });
 
