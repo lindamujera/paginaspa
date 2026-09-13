@@ -320,14 +320,15 @@ router.get('/reservas', (req, res) => {
  `;
  connection.query(sql, (err, result) => {
  if (err) {
- console.error('Error MySQL:', err);
- return res.status(500).json({
- success: false,
- mensaje: 'Error al obtener reservas'
- });
+   console.error('Error MySQL:', err);
+   return res.status(500).json({
+     success: false,
+     mensaje: 'Error al obtener reservas'
+   });
  }
- res.status(200).json({ success: true, reservas: result }); // CORREGIDO: Retorna formato compatible con frontend
- });
+ // CORRECCIÓN DEFINITIVA: Entregamos la lista directa sin envolverla en un objeto
+ res.status(200).json(result); 
+});
 });
 
 // =====================================
