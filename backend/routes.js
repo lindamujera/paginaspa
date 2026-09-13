@@ -62,38 +62,28 @@ const especialistaServicio = {
 };
 
 // =====================================
-// VALIDAR DISPONIBILIDAD (SÚPER SEGURA PARA MYSQL)
+// VALIDAR DISPONIBILIDAD
 // =====================================
-function validarDisponibilidad(connectionPool, fecha, horaInicio, duracion, especialista, callback) {
-  // 1. Calculamos la hora de fin usando Javascript de forma limpia
-  const [horas, minutos] = horaInicio.split(':');
-  const fechaBase = new Date(2000, 0, 1, parseInt(horas), parseInt(minutos));
-  fechaBase.setMinutes(fechaBase.getMinutes() + duracion);
-  
-  // 2. Nos aseguramos de tener el formato "HH:MM:SS" que le encanta a MySQL
-  const horaInicioStr = horaInicio.includes(':') && horaInicio.split(':').length === 2 ? `${horaInicio}:00` : horaInicio;
-  const horaFinStr = `${fechaBase.toTimeString().slice(0, 5)}:00`;
-
-  // 3. Consulta SQL directa usando la función TIME() nativa de MySQL
-  const sql = `
-    SELECT * FROM reservas 
-    WHERE fecha = ? 
-    AND especialista = ?
-    AND (
-      (TIME(hora) < TIME(?) AND TIME(ADDTIME(hora, SEC_TO_TIME(duracion_minutos * 60))) > TIME(?))
-      OR (TIME(hora) >= TIME(?) AND TIME(hora) < TIME(?))
-    )
-  `;
-  
-  connectionPool.query(sql, [fecha, especialista, horaFinStr, horaInicioStr, horaInicioStr, horaFinStr], (err, result) => {
-    if (err) {
-      console.error("Error detallado en MySQL:", err);
-      callback(false, 'Error al validar disponibilidad');
-      return;
-    }
-    // Retorna verdadero si la lista de ocupados está vacía
-    callback(result.length === 0, null);
-  });
+function validarDisponibilidad(connection, fecha, horaInicio, duracion, especialista, callback) {
+ const horaFin = new Date(`2000-01-01 ${horaInicio}`);
+ horaFin.setMinutes(horaFin.getMinutes() + duracion);
+ const horaFinStr = horaFin.toTimeString().slice(0, 5);
+ const sql = `
+ SELECT * FROM reservas 
+ WHERE fecha = ? 
+ AND especialista = ?
+ AND (
+ (hora < ? AND ADDTIME(hora, SEC_TO_TIME(duracion_minutos * 60)) > ?)
+ OR (hora >= ? AND hora < ?)
+ )
+ `;
+ connection.query(sql, [fecha, especialista, horaFinStr, horaInicio, horaInicio, horaFinStr], (err, result) => {
+ if (err) {
+ callback(false, 'Error al validar disponibilidad');
+ return;
+ }
+ callback(result.length === 0, null);
+ });
 }
 // =====================================
 // GUARDAR RESERVA (Adaptado a MySQL)
