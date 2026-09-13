@@ -85,8 +85,9 @@ function validarDisponibilidad(connection, fecha, horaInicio, duracion, especial
  callback(result.length === 0, null);
  });
 }
+
 // =====================================
-// GUARDAR RESERVA (Adaptado a MySQL)
+// GUARDAR RESERVA
 // =====================================
 router.post('/reservar', (req, res) => {
  try {
@@ -112,7 +113,6 @@ router.post('/reservar', (req, res) => {
  mensaje: 'Servicio no válido'
  });
  }
- 
  // Validar disponibilidad
  validarDisponibilidad(connection, fecha, hora, duracion, especialista, (disponible, error) => {
  if (error) {
@@ -128,17 +128,15 @@ router.post('/reservar', (req, res) => {
  disponible: false
  });
  }
- 
- // Guardar reserva usando los marcadores (?) tradicionales de MySQL
+ // Guardar reserva
  const sql = `
  INSERT INTO reservas (nombre, email, fecha, hora, servicio, especialista, duracion_minutos)
  VALUES (?, ?, ?, ?, ?, ?, ?)
  `;
  const valores = [nombre, email, fecha, hora, servicio, especialista, duracion];
- 
  connection.query(sql, valores, (err, result) => {
  if (err) {
- console.error('Error Base de Datos:', err);
+ console.error('Error MySQL:', err);
  return res.status(500).json({
  success: false,
  mensaje: 'Error al guardar la reserva'
@@ -147,7 +145,7 @@ router.post('/reservar', (req, res) => {
  res.status(200).json({
  success: true,
  mensaje: 'Reserva guardada correctamente',
- reservaId: result.insertId // En MySQL se obtiene el ID recién creado usando .insertId
+ reservaId: result.insertId
  });
  });
  });
@@ -158,7 +156,7 @@ router.post('/reservar', (req, res) => {
  mensaje: 'Error interno del servidor'
  });
  }
- });
+});
 
 // =====================================
 // OBTENER HORARIOS DISPONIBLES
@@ -202,19 +200,17 @@ router.post('/horarios-disponibles', (req, res) => {
  
  // Obtener reservas del día
  const sql = `
- SELECT hora::text, duracion_minutos FROM reservas 
- WHERE fecha = $1 AND especialista = $2
+ SELECT hora, duracion_minutos FROM reservas 
+ WHERE fecha = ? AND especialista = ?
  `;
- connection.query(sql, [fecha, especialista], (err, result) => {
+ connection.query(sql, [fecha, especialista], (err, reservas) => {
  if (err) {
- console.error('Error Base de Datos:', err);
+ console.error('Error MySQL:', err);
  return res.status(500).json({
  success: false,
  mensaje: 'Error al obtener horarios'
  });
  }
- 
- const reservas = result.rows;
  
  // Filtrar horarios ocupados
  const horariosOcupados = new Set();
@@ -247,19 +243,17 @@ router.post('/horarios-disponibles', (req, res) => {
  } else {
  // Para otros servicios
  const sql = `
- SELECT hora::text, duracion_minutos FROM reservas 
- WHERE fecha = $1 AND especialista = $2
+ SELECT hora, duracion_minutos FROM reservas 
+ WHERE fecha = ? AND especialista = ?
  `;
- connection.query(sql, [fecha, especialista], (err, result) => {
+ connection.query(sql, [fecha, especialista], (err, reservas) => {
  if (err) {
- console.error('Error Base de Datos:', err);
+ console.error('Error MySQL:', err);
  return res.status(500).json({
  success: false,
  mensaje: 'Error al obtener horarios'
  });
  }
- 
- const reservas = result.rows;
  
  // Filtrar horarios ocupados
  const horariosOcupados = new Set();
@@ -297,21 +291,97 @@ router.post('/horarios-disponibles', (req, res) => {
 router.get('/reservas', (req, res) => {
  const token = req.headers.authorization?.split(' ')[1];
  if (!token || !token.startsWith('admin-token-')) {
-   return res.status(401).json({ success: false, mensaje: 'No autorizado' });
+ return res.status(401).json({ success: false, mensaje: 'Token inválido' });
  }
- 
- // En MySQL no hace falta el "::text", simplemente llamamos a la columna "hora"
- const sql = `SELECT id, nombre, email, fecha, hora, servicio, especialista, duracion_minutos FROM reservas ORDER BY fecha DESC, hora ASC`;
- 
- connection.query(sql, [], (err, result) => {
-   if (err) {
-     console.error('Error al obtener reservas:', err);
-     return res.status(500).json({ success: false, mensaje: 'Error al obtener reservas' });
-   }
-   // En MySQL cambiamos result.rows por result directamente
-   res.status(200).json({ success: true, reservas: result });
+ const sql = `
+ SELECT *
+ FROM reservas
+ ORDER BY id DESC
+ `;
+ connection.query(sql, (err, result) => {
+ if (err) {
+ console.error('Error MySQL:', err);
+ return res.status(500).json({
+ success: false,
+ mensaje: 'Error al obtener reservas'
+ });
+ }
+ res.status(200).json(result);
  });
 });
 
-module.exports = router;
+// =====================================
+// ELIMINAR RESERVA
+// =====================================
+router.delete('/reservas/:id', (req, res) => {
+ try {
+ const token = req.headers.authorization?.split(' ')[1];
+ if (!token) {
+ return res.status(401).json({
+ success: false,
+ mensaje: 'Token requerido'
+ });
+ }
+ 
+ // Verifica que el token sea válido (comienza con 'admin-token-')
+ if (!token.startsWith('admin-token-')) {
+ return res.status(401).json({
+ success: false,
+ mensaje: 'Token inválido'
+ });
+ }
+ 
+ const id = req.params.id;
+ const sql = 'DELETE FROM reservas WHERE id = ?';
+  
+ connection.query(sql, [id], (err, result) => {
+ if (err) {
+ console.error('Error MySQL:', err);
+ return res.status(500).json({
+ success: false,
+ mensaje: 'Error al eliminar reserva'
+ });
+ }
+ 
+ if (result.affectedRows === 0) {
+ return res.status(404).json({
+ success: false,
+ mensaje: 'Reserva no encontrada'
+ });
+ }
+ 
+ res.status(200).json({
+ success: true,
+ mensaje: 'Reserva eliminada correctamente'
+ });
+ });
+ } catch (error) {
+ console.error('Error servidor:', error);
+ res.status(500).json({
+ success: false,
+ mensaje: 'Error interno del servidor'
+ });
+ }
+});
 
+// =====================================
+// VALIDAR LÍMITE UÑAS ARTIFICIALES (máx 4 citas por día)
+// =====================================
+function validarLimiteUnasArtificiales(connection, fecha, callback) {
+ const sql = `
+ SELECT COUNT(*) as total FROM reservas 
+ WHERE fecha = ? 
+ AND servicio = 'Uñas Artificiales Acrílico,Poligel,en gel'
+ `;
+ connection.query(sql, [fecha], (err, result) => {
+ if (err) {
+ callback(false, 'Error al validar límite');
+ return;
+ }
+ const total = result[0].total;
+ const disponible = total < 4;
+ callback(disponible, null);
+ });
+}
+
+module.exports = router;
