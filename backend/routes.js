@@ -62,45 +62,37 @@ const especialistaServicio = {
 };
 
 // =====================================
-// VALIDAR DISPONIBILIDAD (Adaptado a MySQL)
+// VALIDAR DISPONIBILIDAD (Versión Corregida)
 // =====================================
 function validarDisponibilidad(connectionPool, fecha, horaInicio, duracion, especialista, callback) {
- const horaFin = new Date(`2000-01-01 ${horaInicio}`);
- horaFin.setMinutes(horaFin.getMinutes() + duracion);
- const horaFinStr = horaFin.toTimeString().slice(0, 5);
+ // Calculamos la hora de fin sumando los minutos en JavaScript para no saturar a MySQL
+ const [horas, minutos] = horaInicio.split(':');
+ const fechaBase = new Date(2000, 0, 1, parseInt(horas), parseInt(minutos));
+ fechaBase.setMinutes(fechaBase.getMinutes() + duracion);
  
- // Sintaxis corregida usando los signos de interrogación (?) de MySQL 
- // y sumando minutos de manera nativa y simple
+ const horaFinStr = fechaBase.toTimeString().slice(0, 5); // Ejemplo: "15:15"
+ const horaInicioStr = horaInicio.slice(0, 5);            // Ejemplo: "14:30"
+
+ // Una consulta SQL limpia y directa usando lógica de marcas de tiempo estándar
  const sql = `
  SELECT * FROM reservas 
  WHERE fecha = ? 
  AND especialista = ?
  AND (
- (hora < ? AND ADDTIME(CONCAT(hora, ':00'), SEC_TO_TIME(duracion_minutos * 60)) > TIME(?))
- OR (hora >= ? AND hora < ?)
+   (hora < ? AND SEC_TO_TIME(TIME_TO_SEC(hora) + (duracion_minutos * 60)) > TIME(?))
+   OR (hora >= ? AND hora < ?)
  )
  `;
  
- connectionPool.query(sql, [fecha, especialista, horaFinStr, horaInicio, horaInicio, horaFinStr], (err, result) => {
- if (err) {
- console.error(err);
- callback(false, 'Error al validar disponibilidad');
- return;
- }
- callback(result.length === 0, null);
+ connectionPool.query(sql, [fecha, especialista, horaFinStr, horaInicioStr, horaInicioStr, horaFinStr], (err, result) => {
+   if (err) {
+     console.error("Error detallado en MySQL:", err);
+     callback(false, 'Error al validar disponibilidad');
+     return;
+   }
+   callback(result.length === 0, null);
  });
 }
-
-// Función auxiliar requerida para validar el límite de uñas
-function validarLimiteUnasArtificiales(connectionPool, fecha, callback) {
- const sql = `SELECT COUNT(*) as total FROM reservas WHERE fecha = ? AND servicio = 'Uñas Artificiales Acrílico,Poligel,en gel'`;
- connectionPool.query(sql, [fecha], (err, result) => {
- if (err) return callback(false, 'Error al validar límite');
- const total = parseInt(result[0].total || 0);
- callback(total < 4, null);
- });
-}
-
 // =====================================
 // GUARDAR RESERVA (Adaptado a MySQL)
 // =====================================
