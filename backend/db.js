@@ -1,21 +1,16 @@
-const mysql = require("mysql2");
+const { Pool } = require('pg');
 
-const connection = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT
+const connection = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false } // Requerido por Render para conexiones seguras
 });
 
-module.exports = connection;
-
+// Verificar la conexión con Render
 connection.connect(err => {
-
-   if (err) {
-    console.log('Error conexión MySQL:', err);
+  if (err) {
+    console.log('Error conexión PostgreSQL en Render:', err);
   } else {
-    console.log('Conectado a Railway MySQL');
+    console.log('Conectado exitosamente a la base de datos de Render');
   }
 });
 
