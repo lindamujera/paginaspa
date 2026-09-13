@@ -1,14 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const mysql = require("mysql2");
+const { Pool } = require('pg'); // Adaptado a PostgreSQL para la base de datos gratuita de Render
 
-const connection = mysql.createConnection({
- host: process.env.DB_HOST,
- user: process.env.DB_USER,
- password: process.env.DB_PASSWORD,
- database: process.env.DB_NAME,
- port: process.env.DB_PORT
+// Conexión unificada usando la URL interna de Render
+const connection = new Pool({
+ connectionString: process.env.DATABASE_URL,
+ ssl: { rejectUnauthorized: false } // Requerido por Render para conexiones seguras
 });
+
+// Función de ayuda para mantener tu estructura de callbacks sin cambiar tu lógica
+const ejecutarQuery = (sql, valores, callback) => {
+ connection.query(sql, valores, (err, res) => {
+   if (err) return callback(err, null);
+   callback(null, res.rows);
+ });
+};
 
 // =====================================
 // LOGIN ADMIN
@@ -62,25 +68,39 @@ const especialistaServicio = {
 // =====================================
 // VALIDAR DISPONIBILIDAD
 // =====================================
-function validarDisponibilidad(connection, fecha, horaInicio, duracion, especialista, callback) {
+function validarDisponibilidad(connectionPool, fecha, horaInicio, duracion, especialista, callback) {
  const horaFin = new Date(`2000-01-01 ${horaInicio}`);
  horaFin.setMinutes(horaFin.getMinutes() + duracion);
  const horaFinStr = horaFin.toTimeString().slice(0, 5);
+ 
+ // Adaptado a sintaxis PostgreSQL ($1, $2...) y conversión de tiempos compatible con Render
  const sql = `
  SELECT * FROM reservas 
- WHERE fecha = ? 
- AND especialista = ?
+ WHERE fecha = $1 
+ AND especialista = $2
  AND (
- (hora < ? AND ADDTIME(hora, SEC_TO_TIME(duracion_minutos * 60)) > ?)
- OR (hora >= ? AND hora < ?)
+ (hora < $3 AND (hora + CAST(duracion_minutos || ' minutes' AS INTERVAL)) > CAST($4 AS TIME))
+ OR (hora >= $4 AND hora < $3)
  )
  `;
- connection.query(sql, [fecha, especialista, horaFinStr, horaInicio, horaInicio, horaFinStr], (err, result) => {
+ 
+ connectionPool.query(sql, [fecha, especialista, horaFinStr, horaInicio], (err, result) => {
  if (err) {
+ console.error(err);
  callback(false, 'Error al validar disponibilidad');
  return;
  }
- callback(result.length === 0, null);
+ callback(result.rows.length === 0, null);
+ });
+}
+
+// Función auxiliar requerida para validar el límite de uñas
+function validarLimiteUnasArtificiales(connectionPool, fecha, callback) {
+ const sql = `SELECT COUNT(*) as total FROM reservas WHERE fecha = $1 AND servicio = 'Uñas Artificiales Acrílico,Poligel,en gel'`;
+ connectionPool.query(sql, [fecha], (err, result) => {
+ if (err) return callback(false, 'Error al validar límite');
+ const total = parseInt(result.rows[0].total || 0);
+ callback(total < 4, null);
  });
 }
 
@@ -126,15 +146,16 @@ router.post('/reservar', (req, res) => {
  disponible: false
  });
  }
- // Guardar reserva
+ // Guardar reserva (Adaptado a PostgreSQL con RETURNING id)
  const sql = `
  INSERT INTO reservas (nombre, email, fecha, hora, servicio, especialista, duracion_minutos)
- VALUES (?, ?, ?, ?, ?, ?, ?)
+ VALUES ($1, $2, $3, $4, $5, $6, $7)
+ RETURNING id
  `;
  const valores = [nombre, email, fecha, hora, servicio, especialista, duracion];
  connection.query(sql, valores, (err, result) => {
  if (err) {
- console.error('Error MySQL:', err);
+ console.error('Error Base de Datos:', err);
  return res.status(500).json({
  success: false,
  mensaje: 'Error al guardar la reserva'
@@ -143,7 +164,7 @@ router.post('/reservar', (req, res) => {
  res.status(200).json({
  success: true,
  mensaje: 'Reserva guardada correctamente',
- reservaId: result.insertId
+ reservaId: result.rows[0].id
  });
  });
  });
@@ -198,17 +219,19 @@ router.post('/horarios-disponibles', (req, res) => {
  
  // Obtener reservas del día
  const sql = `
- SELECT hora, duracion_minutos FROM reservas 
- WHERE fecha = ? AND especialista = ?
+ SELECT hora::text, duracion_minutos FROM reservas 
+ WHERE fecha = $1 AND especialista = $2
  `;
- connection.query(sql, [fecha, especialista], (err, reservas) => {
+ connection.query(sql, [fecha, especialista], (err, result) => {
  if (err) {
- console.error('Error MySQL:', err);
+ console.error('Error Base de Datos:', err);
  return res.status(500).json({
  success: false,
  mensaje: 'Error al obtener horarios'
  });
  }
+ 
+ const reservas = result.rows;
  
  // Filtrar horarios ocupados
  const horariosOcupados = new Set();
@@ -241,17 +264,19 @@ router.post('/horarios-disponibles', (req, res) => {
  } else {
  // Para otros servicios
  const sql = `
- SELECT hora, duracion_minutos FROM reservas 
- WHERE fecha = ? AND especialista = ?
+ SELECT hora::text, duracion_minutos FROM reservas 
+ WHERE fecha = $1 AND especialista = $2
  `;
- connection.query(sql, [fecha, especialista], (err, reservas) => {
+ connection.query(sql, [fecha, especialista], (err, result) => {
  if (err) {
- console.error('Error MySQL:', err);
+ console.error('Error Base de Datos:', err);
  return res.status(500).json({
  success: false,
  mensaje: 'Error al obtener horarios'
  });
  }
+ 
+ const reservas = result.rows;
  
  // Filtrar horarios ocupados
  const horariosOcupados = new Set();
@@ -289,99 +314,17 @@ router.post('/horarios-disponibles', (req, res) => {
 router.get('/reservas', (req, res) => {
  const token = req.headers.authorization?.split(' ')[1];
  if (!token || !token.startsWith('admin-token-')) {
- return res.status(401).json({ success: false, mensaje: 'Token inválido' });
+   return res.status(401).json({ success: false, mensaje: 'No autorizado' });
  }
- const sql = `
- SELECT *
- FROM reservas
- ORDER BY id DESC
- `;
- connection.query(sql, (err, result) => {
- if (err) {
- console.error('Error MySQL:', err);
- return res.status(500).json({
- success: false,
- mensaje: 'Error al obtener reservas'
- });
- }
- res.status(200).json(result);
+ 
+ const sql = `SELECT id, nombre, email, fecha, hora::text, servicio, especialista, duracion_minutos FROM reservas ORDER BY fecha DESC, hora ASC`;
+ connection.query(sql, [], (err, result) => {
+   if (err) {
+     return res.status(500).json({ success: false, mensaje: 'Error al obtener reservas' });
+   }
+   res.status(200).json({ success: true, reservas: result.rows });
  });
 });
-
-// =====================================
-// ELIMINAR RESERVA
-// =====================================
-router.delete('/reservas/:id', (req, res) => {
- try {
- const token = req.headers.authorization?.split(' ')[1];
- if (!token) {
- return res.status(401).json({
- success: false,
- mensaje: 'Token requerido'
- });
- }
- 
- // Verifica que el token sea válido (comienza con 'admin-token-')
- if (!token.startsWith('admin-token-')) {
- return res.status(401).json({
- success: false,
- mensaje: 'Token inválido'
- });
- }
- 
- const id = req.params.id;
- const sql = 'DELETE FROM reservas WHERE id = ?';
-  
- connection.query(sql, [id], (err, result) => {
- if (err) {
- console.error('Error MySQL:', err);
- return res.status(500).json({
- success: false,
- mensaje: 'Error al eliminar reserva'
- });
- }
- 
- if (result.affectedRows === 0) {
- return res.status(404).json({
- success: false,
- mensaje: 'Reserva no encontrada'
- });
- }
- 
- res.status(200).json({
- success: true,
- mensaje: 'Reserva eliminada correctamente'
- });
- });
- } catch (error) {
- console.error('Error servidor:', error);
- res.status(500).json({
- success: false,
- mensaje: 'Error interno del servidor'
- });
- }
-});
-
-// =====================================
-// VALIDAR LÍMITE UÑAS ARTIFICIALES (máx 4 citas por día)
-// =====================================
-function validarLimiteUnasArtificiales(connection, fecha, callback) {
- const sql = `
- SELECT COUNT(*) as total FROM reservas 
- WHERE fecha = ? 
- AND servicio = 'Uñas Artificiales Acrílico,Poligel,en gel'
- `;
- connection.query(sql, [fecha], (err, result) => {
- if (err) {
- callback(false, 'Error al validar límite');
- return;
- }
- const total = result[0].total;
- const disponible = total < 4;
- callback(disponible, null);
- });
-}
 
 module.exports = router;
-
 
