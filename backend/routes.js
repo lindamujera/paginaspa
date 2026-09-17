@@ -13,16 +13,21 @@ const ejecutarQuery = (sql, valores, callback) => {
  });
 };
 // =====================================  
-// LOGIN ADMIN
+// LOGIN ADMIN (Seguro)
 // =====================================
 router.post('/login', (req, res) => {
- const { usuario, password } = req.body;
- if (usuario === 'bellachica' && password === 'Gato123#') {
- const token = 'admin-token-' + Date.now();
- res.json({ success: true, token });
- } else {
- res.json({ success: false, mensaje: 'Usuario o contraseña incorrectos' });
- }
+  const { usuario, password } = req.body;
+
+  // Comparamos contra las variables de entorno configuradas en el servidor
+  if (usuario === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
+    
+    // NOTA: Para producción se recomienda generar un JWT (JSON Web Token) real
+    const token = 'admin-token-' + Date.now(); 
+    
+    res.json({ success: true, token });
+  } else {
+    res.json({ success: false, mensaje: 'Usuario o contraseña incorrectos' });
+  }
 });
 
 // =====================================
